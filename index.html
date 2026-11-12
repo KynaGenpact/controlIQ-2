@@ -1,0 +1,1104 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>ControlIQ - AI-Powered Control Testing</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Funnel+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+  :root{
+    box-sizing:border-box;
+    padding-top:env(safe-area-inset-top,0px);
+    padding-bottom:env(safe-area-inset-bottom,0px);
+
+    --bg:#0E0E12;
+    --sidebar:#0A0A0D;
+    --panel:#17171C;
+    --panel-2:#1E1E25;
+    --border:rgba(255,255,255,.09);
+    --border-soft:rgba(255,255,255,.06);
+    --text:#FFFFFF;
+    --text-dim:#CACAD1;
+    --text-mute:#8C8C95;
+    --accent:#8B5CF6;
+    --accent-strong:#6D28D9;
+    --accent-glow:139,92,246;
+    --coral:#FF5568;
+    --success:#3ED598;
+    --success-ink:#063324;
+    --amber:#FFC24B;
+    --radius-lg:16px;
+    --radius-md:10px;
+    --radius-sm:7px;
+    --font: 'Funnel Sans', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  }
+  html{scroll-padding-top:env(safe-area-inset-top,0px);}
+
+  *{margin:0;box-sizing:border-box;}
+  html,body{height:100%;}
+  body{
+    background:var(--bg);
+    color:var(--text);
+    font-family:var(--font);
+    -webkit-font-smoothing:antialiased;
+    overflow-x:hidden;
+  }
+  ::selection{background:var(--accent);color:#fff;}
+
+  .app{
+    display:flex;
+    min-height:100vh;
+  }
+
+  .sidebar{
+    width:272px;
+    flex:0 0 272px;
+    background:var(--sidebar);
+    border-right:1px solid var(--border);
+    display:flex;
+    flex-direction:column;
+    padding:22px 18px 16px;
+    gap:22px;
+  }
+  .brand{display:flex;align-items:center;gap:11px;}
+  .brand-mark{
+    width:36px;height:36px;border-radius:10px;
+    background:var(--accent-strong);color:#fff;
+    display:flex;align-items:center;justify-content:center;
+    font-weight:700;font-size:15px;letter-spacing:.2px;
+    flex:0 0 auto;
+  }
+  .brand-text{display:flex;flex-direction:column;line-height:1.15;}
+  .brand-text strong{font-size:16px;font-weight:700;color:#fff;}
+  .brand-text span{font-size:11.5px;color:#9DA0A8;}
+
+  .stepper{display:flex;flex-direction:column;gap:2px;}
+  .step-node{
+    display:flex;align-items:flex-start;gap:11px;
+    padding:9px 8px;border-radius:var(--radius-md);
+    cursor:default;
+    position:relative;
+  }
+  .step-node.clickable{cursor:pointer;}
+  .step-node.clickable:hover{background:rgba(255,255,255,.04);}
+  .step-node:not(:last-child)::before{
+    content:'';position:absolute;left:23px;top:34px;width:1px;height:20px;
+    background:var(--border);
+  }
+  .node-dot{
+    flex:0 0 auto;width:26px;height:26px;border-radius:50%;
+    display:flex;align-items:center;justify-content:center;
+    font-size:11.5px;font-weight:700;
+    border:1.5px solid #3A3E46;color:#6C7078;background:transparent;
+    transition:all .25s ease;
+  }
+  .step-node[data-status="active"] .node-dot{
+    border-color:var(--accent);color:var(--accent);
+    box-shadow:0 0 0 3px rgba(var(--accent-glow),.18);
+  }
+  .step-node[data-status="done"] .node-dot{
+    border-color:var(--success);background:var(--success);color:var(--success-ink);
+  }
+  .node-body{display:flex;flex-direction:column;padding-top:1px;}
+  .node-label{font-size:13px;font-weight:600;color:#7D8088;}
+  .step-node[data-status="active"] .node-label{color:#fff;}
+  .step-node[data-status="done"] .node-label{color:#D6D8DC;}
+  .node-sub{font-size:11px;color:#5E6167;margin-top:1px;}
+  .step-node[data-status="active"] .node-sub{color:var(--accent);}
+  .step-node[data-status="done"] .node-sub{color:var(--success);}
+
+  .rp-widget{
+    margin-top:auto;
+    background:var(--panel-2);
+    border:1px solid var(--border);
+    border-radius:var(--radius-lg);
+    padding:14px 14px 15px;
+  }
+  .rp-head{display:flex;align-items:center;gap:7px;font-size:12.5px;font-weight:700;color:#fff;margin-bottom:10px;}
+  .rp-pulse{width:7px;height:7px;border-radius:50%;background:var(--accent);flex:0 0 auto;
+    box-shadow:0 0 0 0 rgba(var(--accent-glow),.6); animation:pulse 2s infinite;}
+  @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(var(--accent-glow),.55);}70%{box-shadow:0 0 0 6px rgba(var(--accent-glow),0);}100%{box-shadow:0 0 0 0 rgba(var(--accent-glow),0);}}
+  .rp-tag{margin-left:auto;font-size:9.5px;font-weight:600;color:#8B8E96;background:rgba(255,255,255,.06);
+    padding:2px 6px;border-radius:20px;}
+  .rp-row{display:flex;justify-content:space-between;align-items:baseline;font-size:11.5px;color:#8B8E96;margin-top:7px;}
+  .rp-row strong{color:#fff;font-size:12.5px;font-weight:700;}
+  .rp-bar-track{height:5px;border-radius:4px;background:rgba(255,255,255,.08);margin-top:6px;overflow:hidden;}
+  .rp-bar-fill{height:100%;background:var(--accent);border-radius:4px;width:0%;transition:width .6s ease;}
+  .sidebar-foot{font-size:10.5px;color:#54575D;line-height:1.5;padding:0 2px;}
+
+  .main{
+    flex:1;
+    min-width:0;
+    padding:34px 44px 60px;
+    max-width:980px;
+  }
+  .page-head{margin-bottom:26px;}
+  .kicker{display:flex;align-items:center;gap:9px;font-size:12.5px;color:var(--text-mute);font-weight:600;margin-bottom:9px;}
+  .kicker .agent-icon{width:20px;height:20px;border-radius:6px;background:var(--panel-2);display:flex;align-items:center;justify-content:center;color:var(--accent);flex:0 0 auto;}
+  h1{font-size:26px;font-weight:700;letter-spacing:-.2px;margin-bottom:6px;}
+  .lede{font-size:14.5px;color:var(--text-dim);max-width:64ch;line-height:1.55;}
+  .badge{
+    display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:700;
+    padding:4px 10px 4px 8px;border-radius:20px;
+  }
+  .badge.ok{background:rgba(62,213,152,.14);color:var(--success);}
+  .badge.live{background:rgba(255,79,89,.14);color:var(--coral);}
+  .badge.live .lv-dot{width:6px;height:6px;border-radius:50%;background:var(--coral);animation:pulse 1.6s infinite;}
+
+  .panel{
+    background:var(--panel);
+    border:1px solid var(--border);
+    border-radius:var(--radius-lg);
+    padding:22px;
+  }
+  .panel + .panel{margin-top:16px;}
+
+  .drop{
+    border:1.5px dashed var(--border);
+    border-radius:var(--radius-lg);
+    padding:38px 26px;
+    text-align:center;
+    background:var(--panel);
+    transition:border-color .2s ease;
+  }
+  .drop.chosen{border-color:var(--success);border-style:solid;background:var(--panel);}
+  .drop-icon{width:46px;height:46px;border-radius:12px;background:var(--panel-2);display:flex;align-items:center;justify-content:center;margin:0 auto 14px;color:var(--accent);}
+  .drop h3{font-size:15px;font-weight:700;margin-bottom:5px;}
+  .drop p{font-size:13px;color:var(--text-mute);max-width:44ch;margin:0 auto 16px;line-height:1.5;}
+  .file-chip{
+    display:inline-flex;align-items:center;gap:8px;background:var(--panel-2);
+    border:1px solid var(--border);padding:7px 8px 7px 12px;border-radius:9px;font-size:12.5px;margin-top:4px;
+  }
+  .file-chip svg{color:var(--success);flex:0 0 auto;}
+
+  .btn{
+    appearance:none;border:none;cursor:pointer;font-family:var(--font);
+    font-size:13.5px;font-weight:700;border-radius:9px;padding:11px 18px;
+    display:inline-flex;align-items:center;gap:8px;
+    transition:transform .12s ease, opacity .2s ease, background .15s ease;
+  }
+  .btn:active{transform:scale(.98);}
+  .btn-primary{background:var(--accent-strong);color:#fff;}
+  .btn-primary:hover{background:var(--accent);}
+  .btn-ghost{background:transparent;color:var(--text-dim);border:1px solid var(--border);}
+  .btn-ghost:hover{background:rgba(255,255,255,.05);}
+  .btn[disabled]{opacity:.45;cursor:not-allowed;}
+  .btn.hidden-cta{opacity:0;pointer-events:none;transform:translateY(4px);}
+  .btn.show{opacity:1;pointer-events:auto;transform:translateY(0);}
+
+  .sample-row{display:flex;gap:10px;justify-content:center;margin-top:16px;flex-wrap:wrap;}
+
+  .agent-card{
+    background:var(--panel);border:1px solid var(--border);border-radius:var(--radius-lg);
+    padding:28px;
+  }
+  .agent-top{display:flex;align-items:center;gap:14px;margin-bottom:22px;}
+  .agent-avatar{
+    width:48px;height:48px;border-radius:12px;background:var(--panel-2);
+    display:flex;align-items:center;justify-content:center;color:var(--accent);flex:0 0 auto;
+    border:1px solid var(--border);
+  }
+  .agent-top h2{font-size:17px;font-weight:700;margin-bottom:2px;}
+  .agent-top p{font-size:12.5px;color:var(--text-mute);}
+
+  #agentSteps{display:flex;flex-direction:column;}
+  .step-row{
+    display:flex;align-items:center;gap:14px;padding:13px 4px;
+    border-top:1px solid var(--border-soft);
+  }
+  .step-row:first-child{border-top:none;}
+  .step-circle{
+    width:26px;height:26px;border-radius:50%;flex:0 0 auto;
+    border:1.5px solid #3A3E46;position:relative;
+    display:flex;align-items:center;justify-content:center;
+  }
+  .step-row .step-text{font-size:13.5px;color:var(--text-mute);transition:color .2s ease;}
+  .step-row.active .step-text{color:var(--text);}
+  .step-row.done .step-text{color:var(--text-dim);}
+  .step-row.active .step-circle{border-color:var(--accent);}
+  .step-row.active .step-circle::after{
+    content:'';position:absolute;inset:-1.5px;border-radius:50%;
+    border:1.5px solid transparent;border-top-color:var(--accent);
+    animation:spin 0.9s linear infinite;
+  }
+  @media (prefers-reduced-motion: reduce){
+    .step-row.active .step-circle::after{animation:none;}
+    .rp-pulse, .badge.live .lv-dot{animation:none;}
+  }
+  @keyframes spin{to{transform:rotate(360deg);}}
+  .step-row.done .step-circle{background:var(--success);border-color:var(--success);}
+  .step-row.done .step-circle svg{display:block;}
+  .step-row:not(.done) .step-circle svg{display:none;}
+  .step-tag{margin-left:auto;font-size:10.5px;font-weight:700;color:var(--text-mute);letter-spacing:.2px;}
+  .step-row.active .step-tag{color:var(--accent);}
+  .step-row.done .step-tag{color:var(--success);}
+
+  .working-foot{margin-top:24px;display:flex;justify-content:flex-end;}
+
+  .fivewh{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;}
+  .fivewh .cell{background:var(--panel-2);border:1px solid var(--border);border-radius:var(--radius-md);padding:12px 13px;}
+  .fivewh .cell .k{font-size:10.5px;font-weight:700;color:var(--accent);margin-bottom:4px;}
+  .fivewh .cell .v{font-size:12.5px;color:var(--text-dim);line-height:1.45;}
+
+  .control-card{border-top:1px solid var(--border-soft);padding:18px 2px;}
+  .control-card:first-child{border-top:none;padding-top:4px;}
+  .control-head{display:flex;align-items:center;gap:10px;margin-bottom:8px;flex-wrap:wrap;}
+  .control-head h4{font-size:14.5px;font-weight:700;}
+  .pill{font-size:10.5px;font-weight:700;padding:3px 9px;border-radius:20px;background:var(--panel-2);color:var(--text-mute);border:1px solid var(--border);}
+  .pill.risk-high{color:var(--coral);border-color:rgba(255,79,89,.35);}
+  .pill.risk-med{color:var(--amber);border-color:rgba(255,194,75,.35);}
+  .pill.risk-low{color:var(--success);border-color:rgba(62,213,152,.35);}
+  .qa-list{margin-top:9px;padding-left:0;list-style:none;display:flex;flex-direction:column;gap:6px;}
+  .qa-list li{font-size:12.5px;color:var(--text-dim);padding-left:16px;position:relative;line-height:1.5;}
+  .qa-list li::before{content:'?';position:absolute;left:0;top:0;color:var(--accent);font-weight:700;font-size:11px;}
+  .narrative{font-size:13px;color:var(--text-dim);line-height:1.65;margin-top:2px;}
+  .tag-row{display:flex;gap:6px;margin-top:10px;flex-wrap:wrap;}
+
+  table.dtable{width:100%;border-collapse:collapse;font-size:12.8px;}
+  table.dtable th{
+    text-align:left;font-size:11px;color:var(--text-mute);font-weight:700;
+    padding:0 10px 9px;border-bottom:1px solid var(--border);white-space:nowrap;
+  }
+  table.dtable td{padding:12px 10px;border-bottom:1px solid var(--border-soft);color:var(--text-dim);vertical-align:top;}
+  table.dtable tr:last-child td{border-bottom:none;}
+  table.dtable td.strong{color:var(--text);font-weight:600;}
+
+  .stat-row{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px;}
+  .stat{background:var(--panel-2);border:1px solid var(--border);border-radius:var(--radius-md);padding:14px 15px;display:flex;flex-direction:column-reverse;gap:5px;}
+  .stat .num{font-size:22px;font-weight:700;}
+  .stat .lab{font-size:11.5px;color:var(--text-mute);}
+
+  .health-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-bottom:18px;}
+  .health-card{background:var(--panel-2);border:1px solid var(--border);border-radius:var(--radius-md);padding:14px 15px;}
+  .hc-top{display:flex;align-items:center;gap:8px;margin-bottom:8px;}
+  .hc-dot{width:9px;height:9px;border-radius:50%;flex:0 0 auto;}
+  .hc-dot.green{background:var(--success);} .hc-dot.amber{background:var(--amber);} .hc-dot.red{background:var(--coral);}
+  .hc-top .name{font-size:13px;font-weight:700;}
+  .hc-score{font-size:20px;font-weight:700;margin-bottom:6px;}
+  .hc-bar-track{height:5px;background:rgba(255,255,255,.08);border-radius:4px;overflow:hidden;margin-bottom:8px;}
+  .hc-bar-fill{height:100%;border-radius:4px;}
+  .hc-note{font-size:11.5px;color:var(--text-mute);}
+
+  .alert-feed{display:flex;flex-direction:column;}
+  .alert-row{display:flex;gap:11px;padding:11px 2px;border-top:1px solid var(--border-soft);}
+  .alert-row:first-child{border-top:none;}
+  .alert-dot{width:8px;height:8px;border-radius:50%;margin-top:5px;flex:0 0 auto;}
+  .alert-row.amber .alert-dot{background:var(--amber);}
+  .alert-row.green .alert-dot{background:var(--success);}
+  .alert-text{font-size:12.8px;color:var(--text-dim);line-height:1.5;}
+  .alert-time{font-size:11px;color:var(--text-mute);margin-top:2px;}
+
+  .section-label{font-size:11px;font-weight:700;color:var(--text-mute);text-transform:none;margin-bottom:12px;}
+
+  .cte-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px;}
+  .cte-card{
+    background:var(--panel);border:1px solid var(--border);border-radius:var(--radius-lg);
+    padding:20px;display:flex;flex-direction:column;gap:10px;
+  }
+  .cte-card h3{font-size:15px;font-weight:700;color:var(--accent);}
+  .cte-card p{font-size:12.8px;color:var(--text-dim);line-height:1.5;flex:1;}
+  .cte-card .btn{align-self:flex-start;margin-top:2px;}
+  .btn.btn-done{opacity:1;background:var(--success);color:var(--success-ink);}
+
+  .ingestion-panel{margin-bottom:14px;}
+  .ingest-row{display:flex;align-items:center;gap:14px;}
+  .ingest-icon{width:38px;height:38px;border-radius:10px;background:var(--panel-2);display:flex;align-items:center;justify-content:center;color:var(--accent);flex:0 0 auto;}
+  .ingest-text{display:flex;flex-direction:column;flex:1;min-width:0;}
+  .ingest-text strong{font-size:13px;}
+  .ingest-text span{font-size:11.5px;color:var(--text-mute);margin-top:2px;}
+
+  .cte-checklists{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+  .cte-checklists .agent-card{padding:20px;}
+
+  .banner-complete{
+    margin-top:16px;background:rgba(62,213,152,.14);color:var(--success);
+    border:1px solid rgba(62,213,152,.3);border-radius:var(--radius-md);
+    padding:12px 16px;font-weight:700;font-size:13.5px;display:flex;align-items:center;gap:8px;
+    opacity:0;transform:translateY(4px);transition:opacity .25s ease, transform .25s ease;
+  }
+  .banner-complete.show{opacity:1;transform:translateY(0);}
+
+  .acc-list{display:flex;flex-direction:column;gap:9px;margin-bottom:14px;}
+  .acc-row{border:1px solid var(--border);border-radius:var(--radius-md);background:var(--panel);overflow:hidden;}
+  .acc-head{display:flex;align-items:center;gap:11px;padding:14px 16px;cursor:pointer;user-select:none;}
+  .acc-head:hover{background:rgba(255,255,255,.03);}
+  .acc-chevron{display:inline-flex;color:var(--text-mute);font-size:13px;transition:transform .2s ease,color .2s ease;flex:0 0 auto;}
+  .acc-row.open .acc-chevron{transform:rotate(90deg);color:var(--accent);}
+  .acc-title{font-size:13.5px;font-weight:600;color:var(--text-dim);}
+  .acc-row.open .acc-title{color:var(--text);}
+  .acc-body{max-height:0;overflow:hidden;transition:max-height .3s ease;}
+  .acc-body-inner{padding:0 16px 18px;}
+
+  .status-banner{
+    border-radius:var(--radius-md);padding:11px 14px;font-size:12.8px;font-weight:600;
+    display:flex;align-items:center;gap:9px;margin-top:2px;
+  }
+  .status-banner .sb-mark{flex:0 0 auto;font-weight:800;font-size:13px;line-height:1;}
+  .status-banner.green{background:rgba(62,213,152,.14);color:var(--success);border:1px solid rgba(62,213,152,.3);}
+  .status-banner.red{background:rgba(255,79,89,.14);color:var(--coral);border:1px solid rgba(255,79,89,.3);}
+  .status-banner.amber{background:rgba(255,194,75,.14);color:var(--amber);border:1px solid rgba(255,194,75,.3);}
+
+  .toast{
+    position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom,0px));
+    transform:translate(-50%,10px);background:var(--panel-2);border:1px solid var(--border);
+    color:var(--text);padding:12px 18px;border-radius:10px;font-size:13px;font-weight:600;
+    display:flex;align-items:center;gap:8px;opacity:0;transition:opacity .25s ease, transform .25s ease;
+    z-index:50;box-shadow:0 10px 28px rgba(0,0,0,.4);
+  }
+  .toast.show{opacity:1;transform:translate(-50%,0);}
+  .toast svg{color:var(--success);}
+  .out-foot{margin-top:24px;display:flex;justify-content:space-between;align-items:center;gap:12px;}
+  .out-foot .next-agent{font-size:12px;color:var(--text-mute);}
+  .overflow-x{overflow-x:auto;}
+
+  @media (max-width:860px){
+    .app{flex-direction:column;}
+    .sidebar{width:100%;flex:0 0 auto;flex-direction:row;align-items:center;gap:14px;overflow-x:auto;padding:14px 16px;}
+    .stepper{flex-direction:row;gap:0;}
+    .step-node::before{display:none;}
+    .step-node{flex-direction:column;align-items:center;gap:4px;padding:4px 10px;}
+    .node-body{align-items:center;text-align:center;}
+    .node-sub{display:none;}
+    .rp-widget{display:none;}
+    .sidebar-foot{display:none;}
+    .main{padding:24px 18px 44px;max-width:100%;}
+    .fivewh{grid-template-columns:1fr;}
+    .stat-row{grid-template-columns:1fr;}
+    .health-grid{grid-template-columns:1fr;}
+    .cte-grid{grid-template-columns:1fr;}
+    .cte-checklists{grid-template-columns:1fr;}
+    .ingest-row{flex-wrap:wrap;}
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="brand-mark">CQ</div>
+      <div class="brand-text"><strong>ControlIQ</strong><span>Genpact - AI Control Testing</span></div>
+    </div>
+    <nav class="stepper" id="stepper"></nav>
+    <div class="rp-widget" id="rpWidget">
+      <div class="rp-head"><span class="rp-pulse"></span> Resource Planner <span class="rp-tag">cross-cutting</span></div>
+      <div class="rp-row"><span>Pipeline progress</span><strong id="rpProgress">0%</strong></div>
+      <div class="rp-bar-track"><div class="rp-bar-fill" id="rpBarFill"></div></div>
+      <div class="rp-row"><span>Controls tracked</span><strong id="rpControls">-</strong></div>
+      <div class="rp-row"><span>Tester utilization</span><strong id="rpUtil">-</strong></div>
+    </div>
+    <div class="sidebar-foot">Demo environment - every figure on this screen is illustrative sample data.</div>
+  </aside>
+  <main class="main" id="main"></main>
+</div>
+
+<script>
+const CONTROLS = [
+  {
+    id:'JEA', name:'Journal Entry Approval Control', type:'Preventive',
+    blurb:'Manual journal entries above $50,000 require secondary approval before posting to the GL.',
+    risk:'High', riskKey:'high',
+    questions:[
+      'Is there a system-enforced threshold requiring approval above $50,000?',
+      'Does the approver have appropriate segregation of duties from the preparer?'
+    ],
+    narrative:'Manual journal entries exceeding $50,000 are routed through a system-enforced approval workflow in Oracle Financials prior to posting. The preparer and approver are system-restricted to distinct roles, ensuring segregation of duties. Approval evidence is retained in the system audit log for the full retention period.',
+    testStep:'Select a sample of manual journal entries posted during the period and verify secondary approval evidence exists prior to posting.',
+    sampleMethod:'Random', sampleSize:'25', population:'412',
+    riskDesc:'Unauthorized or erroneous GL postings', freq:'Monthly', owner:'Controller',
+    samplesTested:'25 / 25', exceptions:'0', result:'Pass', evidence:'EV-1042',
+    health:96, healthKey:'green', healthNote:'No anomalies detected in the last 30 days.'
+  },
+  {
+    id:'VMF', name:'Vendor Master File Change Control', type:'Detective',
+    blurb:'Changes to vendor banking details are independently verified before activation.',
+    risk:'High', riskKey:'high',
+    questions:[
+      'Are all additions and changes to vendor banking details independently verified?',
+      'Is there a documented callback or verification step before activation?'
+    ],
+    narrative:'Additions and changes to vendor banking details are queued for independent verification by a second member of the AP team before the change is activated in the vendor master file. A documented callback procedure is required for banking detail changes, with confirmation logged against the change ticket.',
+    testStep:'Test that all additions and changes to vendor banking details were independently verified before activation.',
+    sampleMethod:'Random', sampleSize:'20', population:'96',
+    riskDesc:'Fraudulent vendor payments via unauthorized master file changes', freq:'Monthly', owner:'AP Manager',
+    samplesTested:'20 / 20', exceptions:'1', result:'Pass with exception', evidence:'EV-1043',
+    health:88, healthKey:'amber', healthNote:'1 open alert - change logged outside approval window.'
+  },
+  {
+    id:'UAR', name:'User Access Recertification Control', type:'Detective',
+    blurb:'Quarterly recertification of system access, with timely remediation of exceptions.',
+    risk:'Medium', riskKey:'med',
+    questions:[
+      'Was quarterly access recertification completed for all in-scope systems?',
+      'Were identified exceptions remediated within the defined SLA?'
+    ],
+    narrative:'System owners perform a quarterly recertification of user access across in-scope financial systems. Access flagged as inappropriate or no-longer-required is removed within a five-business-day SLA, with remediation evidence retained by the IT security team.',
+    testStep:'Confirm quarterly access recertification was completed and any exceptions were remediated on a timely basis.',
+    sampleMethod:'Judgmental', sampleSize:'15', population:'60',
+    riskDesc:'Inappropriate or stale system access', freq:'Quarterly', owner:'IT Security',
+    samplesTested:'15 / 15', exceptions:'0', result:'Pass', evidence:'EV-1044',
+    health:100, healthKey:'green', healthNote:'Fully compliant - no open items.'
+  },
+  {
+    id:'PBA', name:'Payment Batch Authorization Control', type:'Preventive',
+    blurb:'Payment batches above threshold require dual authorization before release.',
+    risk:'High', riskKey:'high',
+    questions:[
+      'Do payment batches above the defined threshold require dual authorization?',
+      'Is authorization evidence retained and independent of the initiator?'
+    ],
+    narrative:'Payment batches exceeding the defined threshold require dual authorization within the treasury workflow system prior to release to the bank. Authorizers are restricted from initiating the same batch, and authorization evidence is timestamped and retained for audit.',
+    testStep:'Verify dual authorization evidence exists for payment batches exceeding the defined threshold.',
+    sampleMethod:'Random', sampleSize:'30', population:'210',
+    riskDesc:'Unauthorized payment disbursement', freq:'Weekly', owner:'Treasury Manager',
+    samplesTested:'30 / 30', exceptions:'0', result:'Pass', evidence:'EV-1045',
+    health:93, healthKey:'green', healthNote:'Stable trend, no exceptions this cycle.'
+  }
+];
+
+const FIVEWH = {
+  what:'Four financial-close controls referenced in the walkthrough: journal entry approval, vendor master file changes, user access recertification, and payment batch authorization.',
+  why:'To prevent unauthorized postings, fraudulent payments, inappropriate access, and unauthorized disbursements ahead of quarter close.',
+  who:'Preparers, approvers and control owners across Accounting, AP, IT Security and Treasury named in the transcript.',
+  where:'Oracle Financials (GL), the vendor master file, the IAM access console, and the treasury payment workflow system.',
+  when:'Continuously at time of transaction, with formal review cadences of monthly, quarterly and weekly depending on the control.',
+  how:'System-enforced workflow approvals, independent verification steps, and scheduled recertification with documented evidence.'
+};
+
+const VENDOR_CHANGES = [
+  {id:'VMC-2031',date:'2024-11-02',vendor:'VEN-1183',name:'Meridian Supply Co.',field:'Bank Account Number',requestedBy:'J. Ortiz',verifiedBy:'R. Chen',status:'Verified',exception:false},
+  {id:'VMC-2032',date:'2024-11-05',vendor:'VEN-0942',name:'Alderstone Logistics',field:'Remittance Address',requestedBy:'K. Nwosu',verifiedBy:'R. Chen',status:'Verified',exception:false},
+  {id:'VMC-2033',date:'2024-11-08',vendor:'VEN-1204',name:'Brightline Facilities',field:'Bank Account Number',requestedBy:'M. Patel',verifiedBy:'S. Alvarez',status:'Verified',exception:false},
+  {id:'VMC-2034',date:'2024-11-12',vendor:'VEN-0587',name:'Nordic Freight Partners',field:'Vendor Name',requestedBy:'J. Ortiz',verifiedBy:'-',status:'Missing',exception:true,exceptionType:'Missing Verification'},
+  {id:'VMC-2035',date:'2024-11-14',vendor:'VEN-1330',name:'Coastal Office Supply',field:'Payment Terms',requestedBy:'K. Nwosu',verifiedBy:'S. Alvarez',status:'Verified',exception:false},
+  {id:'VMC-2036',date:'2024-11-19',vendor:'VEN-0761',name:'Halcyon IT Services',field:'Bank Account Number',requestedBy:'M. Patel',verifiedBy:'R. Chen',status:'Verified',exception:false},
+  {id:'VMC-2037',date:'2024-11-22',vendor:'VEN-1098',name:'Ferrous Metal Works',field:'Remittance Address',requestedBy:'J. Ortiz',verifiedBy:'S. Alvarez',status:'Verified',exception:false},
+  {id:'VMC-2038',date:'2024-11-27',vendor:'VEN-1415',name:'Willow Creek Consulting',field:'Bank Account Number',requestedBy:'K. Nwosu',verifiedBy:'R. Chen',status:'Verified',exception:false}
+];
+
+const AGENTS = {
+  1:{ name:'Walkthrough Preparation Agent', tagline:'Prepares and runs the walkthrough', icon:'search',
+      steps:['Reading the uploaded transcript','Extracting the 5W1H for each control point','Cross-referencing the control library','Drafting control assessment questions']},
+  2:{ name:'Control Documentation Agent', tagline:'Writes the audit-ready narrative', icon:'doc',
+      steps:['Structuring narrative sections','Mapping controls to SOX 404 & COSO','Drafting audit-ready descriptions','Finalizing traceability references']},
+  3:{ name:'Test Steps & Sampling Agent', tagline:'Defines how each control will be tested', icon:'ruler',
+      steps:['Defining test procedures per control','Selecting a sampling methodology','Calculating statistically valid sample sizes','Aligning to prescribed testing standards']},
+  4:{ name:'Risk & Controls Matrix Generation Agent', tagline:'Maps risks to controls', icon:'grid',
+      steps:['Mapping risks to controls','Assigning control type & risk rating','Centralizing control metadata','Generating the RCM']},
+  5:{ name:'Control Testing Engine (CTE)', tagline:'Executes and validates the test', icon:'flask',
+      steps:['Collecting supporting evidence','Validating evidence completeness','Executing test procedures','Documenting results & exceptions']},
+  6:{ name:'Continuous Control Monitoring Agent', tagline:'Flags control failures continuously', icon:'pulse',
+      steps:['Ingesting live control signals','Running anomaly detection','Scoring control health','Publishing dashboard & alerts']}
+};
+
+const STAGE_META = {
+  1:{label:'Walkthrough Prep', short:'Walkthrough'},
+  2:{label:'Control Documentation', short:'Documentation'},
+  3:{label:'Test Steps & Sampling', short:'Test Steps'},
+  4:{label:'RCM Generation', short:'RCM'},
+  5:{label:'Control Testing (CTE)', short:'Testing'},
+  6:{label:'Continuous Monitoring', short:'CCM'}
+};
+
+const RP_UTIL = {0:'-',1:'58%',2:'64%',3:'71%',4:'77%',5:'83%',6:'89%'};
+
+function icon(name){
+  const s = 'width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"';
+  switch(name){
+    case 'search': return `<svg ${s}><circle cx="10.5" cy="10.5" r="6.5"/><line x1="19" y1="19" x2="15.4" y2="15.4"/></svg>`;
+    case 'doc': return `<svg ${s}><path d="M6 3h8l4 4v14H6z"/><path d="M14 3v4h4"/><line x1="9" y1="12" x2="15" y2="12"/><line x1="9" y1="16" x2="15" y2="16"/></svg>`;
+    case 'ruler': return `<svg ${s}><path d="M4 15l5-5 10 10-5 5z"/><line x1="7.5" y1="11.5" x2="9.5" y2="13.5"/><line x1="10.5" y1="8.5" x2="12.5" y2="10.5"/><line x1="13.5" y1="5.5" x2="15.5" y2="7.5"/></svg>`;
+    case 'grid': return `<svg ${s}><rect x="3.5" y="3.5" width="7.5" height="7.5" rx="1.2"/><rect x="13" y="3.5" width="7.5" height="7.5" rx="1.2"/><rect x="3.5" y="13" width="7.5" height="7.5" rx="1.2"/><rect x="13" y="13" width="7.5" height="7.5" rx="1.2"/></svg>`;
+    case 'flask': return `<svg ${s}><path d="M9 3h6"/><path d="M10 3v6.5L4.8 18a1.6 1.6 0 001.4 2.4h11.6a1.6 1.6 0 001.4-2.4L14 9.5V3"/><line x1="8" y1="15" x2="16" y2="15"/></svg>`;
+    case 'pulse': return `<svg ${s}><path d="M3 12h4l2.5-6 4 12 2-6H21"/></svg>`;
+    case 'upload': return `<svg ${s}><path d="M12 16V4"/><path d="M7 8l5-5 5 5"/><path d="M4 16v3a2 2 0 002 2h12a2 2 0 002-2v-3"/></svg>`;
+    case 'check': return `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><polyline points="4 13 9 18 20 6"/></svg>`;
+    case 'file': return `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 3h8l4 4v14H6z"/></svg>`;
+    default: return '';
+  }
+}
+
+let state = { screen:'upload', stage:0, completed:new Set(), fileChosen:false };
+const mainEl = document.getElementById('main');
+
+function stageStatus(n){
+  if(state.completed.has(n)) return 'done';
+  if(n === state.stage) return 'active';
+  return 'locked';
+}
+
+function renderSidebar(){
+  const stepper = document.getElementById('stepper');
+  stepper.innerHTML = Object.keys(STAGE_META).map(k=>{
+    const n = parseInt(k);
+    const st = stageStatus(n);
+    const meta = STAGE_META[n];
+    const clickable = st === 'done' || (st==='active' && state.screen==='output');
+    const inner = st==='done' ? icon('check') : n;
+    return `<div class="step-node${clickable?' clickable':''}" data-status="${st}" ${clickable?`onclick="viewOutput(${n})" style="cursor:pointer"`:''}>
+      <div class="node-dot">${inner}</div>
+      <div class="node-body">
+        <span class="node-label">${meta.label}</span>
+        <span class="node-sub">${st==='done'?'Complete':st==='active'?(state.screen==='working'?'Agent working...':'In progress'):'Pending'}</span>
+      </div>
+    </div>`;
+  }).join('');
+  updateResourcePlanner();
+}
+
+function updateResourcePlanner(){
+  const done = state.completed.size;
+  const pct = Math.round((done/6)*100);
+  document.getElementById('rpProgress').textContent = pct + '%';
+  document.getElementById('rpBarFill').style.width = pct + '%';
+  document.getElementById('rpControls').textContent = done >= 1 ? '4 identified' : '-';
+  document.getElementById('rpUtil').textContent = RP_UTIL[done];
+}
+
+function viewOutput(n){
+  if(!state.completed.has(n)) return;
+  state.screen='output'; state.stage=n;
+  renderSidebar();
+  mainEl.innerHTML = outputScreenHTML(n);
+  if(n===6) startLiveTicker();
+}
+
+function uploadScreenHTML(){
+  return `
+  <div class="page-head">
+    <div class="kicker"><span class="agent-icon">${icon('upload')}</span> Start a control test</div>
+    <h1>Bring in a source, get a full control test in minutes</h1>
+    <p class="lede">Upload a walkthrough transcript, meeting recording notes, or a policy document. ControlIQ's agents will extract the 5W1H of every control mentioned - what's being tested, why, who's involved, where it happens, when, and how - then carry it end-to-end through documentation, test steps, the RCM, testing and continuous monitoring.</p>
+  </div>
+  <div class="panel">
+    <div class="drop" id="dropZone">
+      <div class="drop-icon">${icon('upload')}</div>
+      <h3 id="dropTitle">Drop a file here, or choose a sample</h3>
+      <p id="dropSub">Accepted for this demo: .docx, .txt, .mp4 transcript exports. Nothing is uploaded anywhere - this is a sample environment.</p>
+      <div class="sample-row" id="sampleRow">
+        <button class="btn btn-ghost" onclick="chooseSample('Q3_Close_Walkthrough_Transcript.docx')">${icon('file')} Use sample transcript</button>
+        <button class="btn btn-ghost" onclick="chooseSample('AP_Controls_Meeting_Notes.txt')">${icon('file')} Use sample meeting notes</button>
+      </div>
+    </div>
+  </div>
+  <div style="margin-top:20px;display:flex;justify-content:flex-end;">
+    <button class="btn btn-primary" id="analyzeBtn" disabled onclick="startPipeline()">Analyze with AI -></button>
+  </div>`;
+}
+
+function chooseSample(filename){
+  state.fileChosen = true;
+  const dz = document.getElementById('dropZone');
+  dz.classList.add('chosen');
+  document.getElementById('dropTitle').textContent = 'File ready for analysis';
+  document.getElementById('dropSub').innerHTML = `<span class="file-chip">${icon('check')} ${filename}</span>`;
+  document.getElementById('sampleRow').style.display = 'none';
+  document.getElementById('analyzeBtn').disabled = false;
+}
+
+function goUpload(){
+  state = { screen:'upload', stage:0, completed:new Set() };
+  renderSidebar();
+  mainEl.innerHTML = uploadScreenHTML();
+}
+
+function startPipeline(){
+  if(!state.fileChosen) return;
+  goWorking(1);
+}
+
+function workingScreenHTML(n){
+  const a = AGENTS[n];
+  const meta = STAGE_META[n];
+  return `
+  <div class="page-head">
+    <div class="kicker"><span class="agent-icon">${icon(a.icon)}</span> ${meta.label}</div>
+    <h1>Agent at work</h1>
+    <p class="lede">${a.name} is running now. Each step below completes in sequence - nothing here needs input from you.</p>
+  </div>
+  <div class="agent-card">
+    <div class="agent-top">
+      <div class="agent-avatar">${icon(a.icon)}</div>
+      <div>
+        <h2>${a.name}</h2>
+        <p>${a.tagline}</p>
+      </div>
+    </div>
+    <div id="agentSteps">
+      ${a.steps.map(s=>`<div class="step-row"><div class="step-circle">${icon('check')}</div><span class="step-text">${s}</span><span class="step-tag">Queued</span></div>`).join('')}
+    </div>
+  </div>
+  <div class="working-foot">
+    <button class="btn btn-primary hidden-cta" id="continueBtn" onclick="viewOutputFromWorking(${n})">View results -></button>
+  </div>`;
+}
+
+function goWorking(n){
+  state.screen='working'; state.stage=n;
+  renderSidebar();
+  if(n === 5){
+    mainEl.innerHTML = ctEngineWorkingHTML();
+  } else {
+    mainEl.innerHTML = workingScreenHTML(n);
+    requestAnimationFrame(()=>animateSteps());
+  }
+}
+
+function stepRowHTML(text){
+  return `<div class="step-row"><div class="step-circle">${icon('check')}</div><span class="step-text">${text}</span><span class="step-tag">Queued</span></div>`;
+}
+
+function ctEngineWorkingHTML(){
+  const steps1 = ['Identify Evidence Requirements','Secure Source Connection','Evidence Acquisition','Evidence Verification','Evidence Storage & Handover to TOE Agent'];
+  const steps2 = ['Understand Control Requirement','Generate Test Steps & Evidence Mapping','Execute Testing','Result Validation','Publish Test Results'];
+  return `
+  <div class="page-head">
+    <div class="kicker"><span class="agent-icon">${icon('flask')}</span> Control Testing (CTE)</div>
+    <h1>Your agentic engine for automated control testing</h1>
+    <p class="lede">Two agents share the work: one gathers and verifies the evidence, the other executes the test itself. Kick off the first agent below.</p>
+  </div>
+
+  <div class="cte-grid">
+    <div class="cte-card">
+      <h3>Evidence Collection & Assessment Agent</h3>
+      <p>Autonomously gathers and verifies data required for testing.</p>
+      <button class="btn btn-primary" id="cteBtn1" onclick="startCteChecklist(1)">Initiate data collection &amp; verification</button>
+    </div>
+    <div class="cte-card">
+      <h3>TOE Agent</h3>
+      <p>Conducts control testing autonomously.</p>
+      <button class="btn btn-primary" id="cteBtn2" disabled onclick="startCteChecklist(2)">Initiate control testing</button>
+    </div>
+  </div>
+
+  <div class="panel ingestion-panel">
+    <div class="section-label">Evidence source</div>
+    <div class="ingest-row">
+      <div class="ingest-icon">${icon('upload')}</div>
+      <div class="ingest-text">
+        <strong>Evidence auto-ingested from upstream stages</strong>
+        <span>Vendor_Master_Change_Log_Q4.xlsb - sourced from the RCM &amp; test plan, ready for the agents above</span>
+      </div>
+      <span class="file-chip">${icon('check')} Ready</span>
+    </div>
+  </div>
+
+  <div class="cte-checklists">
+    <div class="agent-card">
+      <div class="section-label">Evidence Collection & Assessment</div>
+      <div id="cteSteps1">${steps1.map(stepRowHTML).join('')}</div>
+    </div>
+    <div class="agent-card">
+      <div class="section-label">Operating Effectiveness Testing</div>
+      <div id="cteSteps2">${steps2.map(stepRowHTML).join('')}</div>
+    </div>
+  </div>
+
+  <div class="banner-complete" id="cteCompleteBanner">${icon('check')} All steps completed. See results below.</div>
+
+  <div class="working-foot">
+    <button class="btn btn-primary hidden-cta" id="continueBtn" onclick="viewOutputFromWorking(5)">View results -></button>
+  </div>`;
+}
+
+function animateChecklist(containerId, onDone){
+  const rows = document.querySelectorAll('#'+containerId+' .step-row');
+  const tags = document.querySelectorAll('#'+containerId+' .step-tag');
+  let i = 0;
+  function step(){
+    if(i>0){
+      rows[i-1].classList.remove('active');
+      rows[i-1].classList.add('done');
+      tags[i-1].textContent = 'Done';
+    }
+    if(i < rows.length){
+      rows[i].classList.add('active');
+      tags[i].textContent = 'In progress';
+      i++;
+      setTimeout(step, 850);
+    } else if(onDone){
+      onDone();
+    }
+  }
+  step();
+}
+
+function startCteChecklist(which){
+  if(which === 1){
+    const btn = document.getElementById('cteBtn1');
+    btn.disabled = true; btn.textContent = 'Running...';
+    animateChecklist('cteSteps1', ()=>{
+      btn.textContent = 'Completed'; btn.classList.add('btn-done');
+      document.getElementById('cteBtn2').disabled = false;
+    });
+  } else {
+    const btn2 = document.getElementById('cteBtn2');
+    btn2.disabled = true; btn2.textContent = 'Running...';
+    animateChecklist('cteSteps2', ()=>{
+      btn2.textContent = 'Completed'; btn2.classList.add('btn-done');
+      document.getElementById('cteCompleteBanner').classList.add('show');
+      document.getElementById('continueBtn').classList.add('show');
+    });
+  }
+}
+
+function animateSteps(){
+  const rows = document.querySelectorAll('#agentSteps .step-row');
+  const tags = document.querySelectorAll('#agentSteps .step-tag');
+  let i = 0;
+  function step(){
+    if(i>0){
+      rows[i-1].classList.remove('active');
+      rows[i-1].classList.add('done');
+      tags[i-1].textContent = 'Done';
+    }
+    if(i < rows.length){
+      rows[i].classList.add('active');
+      tags[i].textContent = 'In progress';
+      i++;
+      setTimeout(step, 1000);
+    } else {
+      const btn = document.getElementById('continueBtn');
+      if(btn) btn.classList.add('show');
+    }
+  }
+  step();
+}
+
+function viewOutputFromWorking(n){
+  state.completed.add(n);
+  goOutput(n);
+}
+
+function goOutput(n){
+  state.screen='output'; state.stage=n;
+  renderSidebar();
+  mainEl.innerHTML = outputScreenHTML(n);
+  if(n===6) startLiveTicker();
+}
+
+function riskPillClass(k){ return k==='high'?'risk-high':k==='med'?'risk-med':'risk-low'; }
+
+function headerBlock(n, title, lede){
+  const meta = STAGE_META[n];
+  const a = AGENTS[n];
+  return `
+  <div class="page-head">
+    <div class="kicker"><span class="agent-icon">${icon(a.icon)}</span> ${meta.label} <span class="badge ok">${icon('check')} Complete</span></div>
+    <h1>${title}</h1>
+    <p class="lede">${lede}</p>
+  </div>`;
+}
+
+function footerBlock(n){
+  const next = STAGE_META[n+1];
+  if(!next){
+    return `<div class="out-foot"><span class="next-agent">End of the demo pipeline.</span>
+      <button class="btn btn-ghost" onclick="goUpload()">Restart demo</button></div>`;
+  }
+  return `<div class="out-foot">
+    <span class="next-agent">Next: ${AGENTS[n+1].name}</span>
+    <button class="btn btn-primary" onclick="goWorking(${n+1})">Continue to ${next.short} -></button>
+  </div>`;
+}
+
+function outputScreenHTML(n){
+  switch(n){
+    case 1: return outputWalkthrough();
+    case 2: return outputDocumentation();
+    case 3: return outputTestSteps();
+    case 4: return outputRCM();
+    case 5: return outputCTE();
+    case 6: return outputCCM();
+  }
+}
+
+function outputWalkthrough(){
+  return headerBlock(1, 'Walkthrough analysis', 'The transcript has been broken down into the 5W1H of the process, and matched against the control library to surface the relevant controls and assessment questions.') + `
+  <div class="panel">
+    <div class="section-label">5W1H extracted from the source</div>
+    <div class="fivewh">
+      ${Object.entries(FIVEWH).map(([k,v])=>`<div class="cell"><div class="k">${k.toUpperCase()}</div><div class="v">${v}</div></div>`).join('')}
+    </div>
+  </div>
+  <div class="panel">
+    <div class="section-label">Relevant controls identified - ${CONTROLS.length}</div>
+    ${CONTROLS.map(c=>`
+      <div class="control-card">
+        <div class="control-head">
+          <h4>${c.name}</h4>
+          <span class="pill">${c.type}</span>
+          <span class="pill ${riskPillClass(c.riskKey)}">${c.risk} risk</span>
+        </div>
+        <div class="narrative">${c.blurb}</div>
+        <ul class="qa-list">${c.questions.map(q=>`<li>${q}</li>`).join('')}</ul>
+      </div>`).join('')}
+  </div>
+  ` + footerBlock(1);
+}
+
+function outputDocumentation(){
+  return headerBlock(2, 'Control documentation', 'Every control now has an audit-ready narrative, mapped to the relevant regulatory frameworks and ready for reviewer sign-off.') + `
+  <div class="panel">
+    ${CONTROLS.map(c=>`
+      <div class="control-card">
+        <div class="control-head">
+          <h4>${c.name}</h4>
+          <span class="pill">${c.type}</span>
+        </div>
+        <div class="narrative">${c.narrative}</div>
+        <div class="tag-row">
+          <span class="pill">SOX 404</span>
+          <span class="pill">COSO Framework</span>
+          <span class="pill" style="color:var(--success);border-color:rgba(62,213,152,.35);">Documented</span>
+        </div>
+      </div>`).join('')}
+  </div>
+  ` + footerBlock(2);
+}
+
+function outputTestSteps(){
+  return headerBlock(3, 'Test steps & sampling', 'A test procedure and sampling approach has been defined for each control, aligned to the relevant testing standards.') + `
+  <div class="panel overflow-x">
+    <table class="dtable">
+      <tr><th>Control</th><th>Test step</th><th>Method</th><th>Sample / Population</th></tr>
+      ${CONTROLS.map(c=>`<tr>
+        <td class="strong">${c.name}</td>
+        <td style="max-width:320px;">${c.testStep}</td>
+        <td>${c.sampleMethod}</td>
+        <td>${c.sampleSize} of ${c.population}</td>
+      </tr>`).join('')}
+    </table>
+  </div>
+  ` + footerBlock(3);
+}
+
+function outputRCM(){
+  return headerBlock(4, 'Risk & controls matrix', 'Risks have been mapped to controls, rated, and centralized into a single RCM - the backbone for testing and ongoing oversight.') + `
+  <div class="panel overflow-x">
+    <table class="dtable">
+      <tr><th>Risk</th><th>Control</th><th>Type</th><th>Rating</th><th>Frequency</th><th>Owner</th></tr>
+      ${CONTROLS.map(c=>`<tr>
+        <td style="max-width:220px;">${c.riskDesc}</td>
+        <td class="strong">${c.name}</td>
+        <td>${c.type}</td>
+        <td><span class="pill ${riskPillClass(c.riskKey)}">${c.risk}</span></td>
+        <td>${c.freq}</td>
+        <td>${c.owner}</td>
+      </tr>`).join('')}
+    </table>
+  </div>
+  ` + footerBlock(4);
+}
+
+function statusBanner(kind, mark, text){
+  return `<div class="status-banner ${kind}"><span class="sb-mark">${mark}</span><span>${text}</span></div>`;
+}
+
+function accordionRow(id, title, contentHTML){
+  return `<div class="acc-row" id="acc-${id}">
+    <div class="acc-head" onclick="toggleAcc('${id}')">
+      <span class="acc-chevron" id="chev-${id}">></span>
+      <span class="acc-title">${title}</span>
+    </div>
+    <div class="acc-body" id="body-${id}"><div class="acc-body-inner">${contentHTML}</div></div>
+  </div>`;
+}
+
+function toggleAcc(id){
+  const row = document.getElementById('acc-'+id);
+  const body = document.getElementById('body-'+id);
+  const isOpen = row.classList.contains('open');
+  if(isOpen){
+    row.classList.remove('open');
+    body.style.maxHeight = '0px';
+  } else {
+    row.classList.add('open');
+    body.style.maxHeight = body.firstElementChild.scrollHeight + 'px';
+  }
+}
+
+function vendorChangeTable(){
+  return `<div class="overflow-x" style="margin-top:12px;">
+    <table class="dtable">
+      <tr><th>change_id</th><th>change_date</th><th>vendor_id</th><th>vendor_name</th><th>field_changed</th><th>requested_by</th><th>verified_by</th><th>status</th></tr>
+      ${VENDOR_CHANGES.map(v=>`<tr>
+        <td class="strong">${v.id}</td><td>${v.date}</td><td>${v.vendor}</td><td>${v.name}</td><td>${v.field}</td>
+        <td>${v.requestedBy}</td><td>${v.verifiedBy}</td>
+        <td style="color:${v.exception?'var(--coral)':'var(--text-dim)'};font-weight:${v.exception?'700':'400'};">${v.status}${v.exception?' - '+v.exceptionType:''}</td>
+      </tr>`).join('')}
+    </table>
+  </div>`;
+}
+
+function outputCTE(){
+  const summaryTable = `
+  <div class="panel">
+    <div class="section-label">All controls - testing summary</div>
+    <div class="stat-row">
+      <div class="stat"><div class="num">90/90</div><div class="lab">Samples tested</div></div>
+      <div class="stat"><div class="num">1</div><div class="lab">Exceptions found</div></div>
+      <div class="stat"><div class="num">96%</div><div class="lab">Overall pass rate</div></div>
+    </div>
+    <div class="overflow-x">
+      <table class="dtable">
+        <tr><th>Control</th><th>Sample tested</th><th>Exceptions</th><th>Result</th><th>Evidence ref.</th></tr>
+        ${CONTROLS.map(c=>`<tr>
+          <td class="strong">${c.name}</td>
+          <td>${c.samplesTested}</td>
+          <td>${c.exceptions}</td>
+          <td>${c.result}</td>
+          <td>${c.evidence}</td>
+        </tr>`).join('')}
+      </table>
+    </div>
+  </div>`;
+
+  const rows = [
+    accordionRow('pop', 'Sufficiency Assessment - Population Completeness', `
+      <div class="stat-row">
+        <div class="stat"><div class="num">96</div><div class="lab">Expected Change Records (Q4)</div></div>
+        <div class="stat"><div class="num">96</div><div class="lab">Records Covered in Change Log</div></div>
+        <div class="stat"><div class="num">0</div><div class="lab">Gap (Missing Records)</div></div>
+      </div>
+      ${statusBanner('green','OK','Change log covers all vendor master file changes logged in Q4 2024.')}
+    `),
+    accordionRow('review', 'Sufficiency Assessment - Review Validation', `
+      <div class="stat-row">
+        <div class="stat"><div class="num">96</div><div class="lab">Changes in Master File</div></div>
+        <div class="stat"><div class="num">95</div><div class="lab">Changes with Verification Evidence</div></div>
+        <div class="stat"><div class="num">1</div><div class="lab">Gap (Missing Reviews)</div></div>
+      </div>
+      ${statusBanner('red','X','1 Q4 vendor banking-detail change missing independent verification evidence.')}
+      ${vendorChangeTable()}
+    `),
+    accordionRow('anomaly', 'Anomaly Detection - Exceptions & Escalation Review', `
+      <div class="stat-row">
+        <div class="stat"><div class="num">1</div><div class="lab">Exceptions Identified</div></div>
+        <div class="stat"><div class="num">1</div><div class="lab">Escalated to Control Owner</div></div>
+        <div class="stat"><div class="num">2.4 hrs</div><div class="lab">Avg. Time to Escalation</div></div>
+      </div>
+      ${statusBanner('amber','!','1 exception escalated to the AP Manager for review.')}
+      <div class="overflow-x" style="margin-top:12px;">
+        <table class="dtable">
+          <tr><th>exception_id</th><th>change_id</th><th>vendor_name</th><th>exception_type</th><th>detected_at</th><th>escalated_to</th><th>status</th></tr>
+          <tr><td class="strong">EXC-0091</td><td>VMC-2034</td><td>Nordic Freight Partners</td><td style="color:var(--coral);font-weight:700;">Missing Verification</td><td>2024-11-12 14:32</td><td>M. Alvarado (AP Manager)</td><td>Open</td></tr>
+        </table>
+      </div>
+    `),
+    accordionRow('timeliness', 'Operating Effectiveness Results - Validation of Review Timeliness', `
+      <div class="stat-row">
+        <div class="stat"><div class="num">95</div><div class="lab">Reviews Within SLA</div></div>
+        <div class="stat"><div class="num">1</div><div class="lab">Open Breach(es)</div></div>
+        <div class="stat"><div class="num">99%</div><div class="lab">On-Time Rate</div></div>
+      </div>
+      ${statusBanner('red','X','1 vendor change review was not completed within the 2-business-day SLA.')}
+      <div class="overflow-x" style="margin-top:12px;">
+        <table class="dtable">
+          <tr><th>change_id</th><th>change_date</th><th>verification_due</th><th>verification_completed</th><th>delay</th></tr>
+          <tr><td class="strong">VMC-2034</td><td>2024-11-12</td><td>2024-11-14</td><td style="color:var(--coral);font-weight:700;">Not completed</td><td style="color:var(--coral);font-weight:700;">5+ days (open)</td></tr>
+        </table>
+      </div>
+    `),
+    accordionRow('eligibility', 'Operating Effectiveness Results - Reviewer Eligibility Check', `
+      <div class="stat-row">
+        <div class="stat"><div class="num">96</div><div class="lab">Changes Checked</div></div>
+        <div class="stat"><div class="num">0</div><div class="lab">Segregation-of-Duty Violations</div></div>
+        <div class="stat"><div class="num">100%</div><div class="lab">Eligible Reviewer Rate</div></div>
+      </div>
+      ${statusBanner('green','OK','No segregation-of-duty violations - no reviewer verified their own change request.')}
+      <div class="overflow-x" style="margin-top:12px;">
+        <table class="dtable">
+          <tr><th>change_id</th><th>requested_by</th><th>verified_by</th><th>same_person</th><th>eligible</th></tr>
+          ${VENDOR_CHANGES.map(v=>`<tr>
+            <td class="strong">${v.id}</td><td>${v.requestedBy}</td><td>${v.verifiedBy}</td>
+            <td>${v.verifiedBy==='-' ? 'N/A' : 'No'}</td>
+            <td style="color:${v.verifiedBy==='-' ? 'var(--text-mute)' : 'var(--success)'};font-weight:700;">${v.verifiedBy==='-' ? 'N/A' : 'Yes'}</td>
+          </tr>`).join('')}
+        </table>
+      </div>
+    `),
+    accordionRow('perfunctory', 'Operating Effectiveness Results - Perfunctory Review Check', `
+      <div class="stat-row">
+        <div class="stat"><div class="num">7</div><div class="lab">Reviews Analyzed</div></div>
+        <div class="stat"><div class="num">0</div><div class="lab">Flagged as Perfunctory</div></div>
+        <div class="stat"><div class="num">&lt;10 min</div><div class="lab">Flag Threshold</div></div>
+      </div>
+      ${statusBanner('green','OK','No perfunctory reviews identified - every verification exceeded the minimum review-duration threshold.')}
+      <div class="overflow-x" style="margin-top:12px;">
+        <table class="dtable">
+          <tr><th>change_id</th><th>verified_by</th><th>verification_started</th><th>verification_completed</th><th>review_duration</th><th>flagged</th></tr>
+          ${VENDOR_CHANGES.filter(v=>!v.exception).map((v,i)=>{
+            const durations=['18 min','24 min','31 min','12 min','27 min','19 min','22 min'];
+            return `<tr>
+              <td class="strong">${v.id}</td><td>${v.verifiedBy}</td><td>${v.date} 09:1${i}</td><td>${v.date} 09:3${i}</td>
+              <td>${durations[i]}</td><td style="color:var(--success);font-weight:700;">No</td>
+            </tr>`;
+          }).join('')}
+        </table>
+      </div>
+    `)
+  ];
+
+  return headerBlock(5, 'Control testing results', 'The Evidence Collection & Assessment Agent and TOE Agent completed autonomous testing. Drill into each check below - shown here for the Vendor Master File Change Control.') + `
+  ${summaryTable}
+  <div class="section-label" style="margin-top:16px;">Agent output - drill into each check</div>
+  <div class="acc-list">${rows.join('')}</div>
+  <button class="btn btn-primary" onclick="generateExcel()">Generate Excel Output</button>
+  ` + footerBlock(5);
+}
+
+function generateExcel(){
+  const t = document.createElement('div');
+  t.className = 'toast';
+  t.innerHTML = `${icon('check')} Excel output generated (demo only)`;
+  document.body.appendChild(t);
+  requestAnimationFrame(()=>t.classList.add('show'));
+  setTimeout(()=>{
+    t.classList.remove('show');
+    setTimeout(()=>t.remove(), 300);
+  }, 2400);
+}
+
+function outputCCM(){
+  return headerBlock(6, 'Continuous control monitoring', 'Each tested control is now on live monitoring, with automatic anomaly detection and alerting.') + `
+  <div class="panel">
+    <div class="section-label" style="display:flex;align-items:center;gap:8px;">Control health <span class="badge live"><span class="lv-dot"></span> Live</span></div>
+    <div class="health-grid">
+      ${CONTROLS.map(c=>`
+        <div class="health-card">
+          <div class="hc-top"><span class="hc-dot ${c.healthKey}"></span><span class="name">${c.name}</span></div>
+          <div class="hc-score">${c.health}%</div>
+          <div class="hc-bar-track"><div class="hc-bar-fill" style="width:${c.health}%;background:${c.healthKey==='green'?'var(--success)':c.healthKey==='amber'?'var(--amber)':'var(--coral)'}"></div></div>
+          <div class="hc-note">${c.healthNote}</div>
+        </div>`).join('')}
+    </div>
+    <div class="section-label">Alert feed</div>
+    <div class="alert-feed" id="alertFeed">
+      <div class="alert-row amber"><div class="alert-dot"></div><div><div class="alert-text">Vendor Master File Change - banking detail change flagged outside approval window.</div><div class="alert-time" data-mins="4">4 min ago</div></div></div>
+      <div class="alert-row green"><div class="alert-dot"></div><div><div class="alert-text">User Access Recertification - quarterly recertification completed on schedule.</div><div class="alert-time" data-mins="192">3 hr ago</div></div></div>
+      <div class="alert-row green"><div class="alert-dot"></div><div><div class="alert-text">Payment Batch Authorization - batch authorized within SLA, no exceptions.</div><div class="alert-time" data-mins="311">5 hr ago</div></div></div>
+    </div>
+  </div>
+  ` + footerBlock(6);
+}
+
+let liveTicker = null;
+function startLiveTicker(){
+  if(liveTicker) clearInterval(liveTicker);
+  liveTicker = setInterval(()=>{
+    const rows = document.querySelectorAll('#alertFeed .alert-time');
+    if(!rows.length){ clearInterval(liveTicker); return; }
+    rows.forEach(r=>{
+      let mins = parseInt(r.dataset.mins || '0') + 1;
+      r.dataset.mins = mins;
+      r.textContent = mins < 60 ? `${mins} min ago` : `${Math.round(mins/60)} hr ago`;
+    });
+  }, 4000);
+}
+
+goUpload();
+</script>
+</body>
+</html>
